@@ -1,5 +1,7 @@
 import { Router } from "express";
 import authController from "./auth.controller";
+import passport from "passport";
+import jwt from "jsonwebtoken";
 
 const router = Router();
 
@@ -104,5 +106,41 @@ router.get("/check-email", authController.checkEmail);
  *                   type: string
  */
 router.post("/verify-email", authController.verifyEmail);
+
+// 구글 로그인
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  })
+);
+
+// 구글 로그인 콜백
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/login/failed",
+    session: false,
+  }),
+  (req, res) => {
+    // Passport가 성공적으로 인증하고 user 객체를 req.user에 담아줌
+    const user = req.user as User;
+
+    // JWT 생성
+    const payload = { id: user.id, email: user.email };
+    const token = jwt.sign(payload, process.env.JWT_SECRET!, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "1d",
+    });
+
+    // TODO: 성공 시 프론트엔드의 특정 페이지로 리다이렉트하면서 토큰 전달
+    // 예: res.redirect(`http://localhost:3000/auth/success?token=${token}`);
+    res.status(200).json({
+      message: "Google login successful",
+      token,
+      user,
+    });
+  }
+);
 
 export default router;

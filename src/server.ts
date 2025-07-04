@@ -5,6 +5,8 @@ import "express-async-errors";
 import { ZodError } from "zod";
 import morgan from "morgan";
 import logger, { stream } from "./config/logger";
+import passport from "passport";
+import { setupPassport } from "./config/passport";
 
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
@@ -18,6 +20,10 @@ const PORT = process.env.PORT || 8000;
 //모르간 로깅
 const morganFormat = process.env.NODE_ENV !== "production" ? "dev" : "combined";
 app.use(morgan(morganFormat, { stream }));
+
+//패스포트~~ 패스포트~~
+app.use(passport.initialize());
+setupPassport();
 
 // 미들웨어
 app.use(cors());

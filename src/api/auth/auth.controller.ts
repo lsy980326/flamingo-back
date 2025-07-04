@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { z } from "zod"; // ✨ 이 줄을 추가해주세요!
+import { z } from "zod";
 import authService from "./auth.service";
 import { registerUserSchema } from "./dtos/auth.dto";
 import { AppError } from "../../utils/AppError"; // AppError도 import 되어 있는지 확인

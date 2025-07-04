@@ -19,10 +19,12 @@ export interface User {
   // ... 나머지 필드들
 }
 
-// ✨ 새로운 타입 정의: 사용자 생성을 위한 데이터 타입
-// RegisterUserDto에서 password를 제외하고 password_hash를 추가합니다.
 type CreateUserPayload = Omit<RegisterUserDto, "password"> & {
-  password_hash: string;
+  password_hash?: string; // 선택사항으로 변경
+  provider?: string;
+  provider_id?: string;
+  status?: user_status;
+  email_verified?: boolean;
 };
 
 export class UserModel {
@@ -32,33 +34,59 @@ export class UserModel {
     return rows[0];
   }
 
-  // ✨ 수정된 부분: 파라미터 타입을 명확한 CreateUserPayload로 변경
   static async create(userData: CreateUserPayload): Promise<User> {
-    // 이제 userData에서 모든 속성을 안전하게 가져올 수 있습니다.
     const {
       email,
       password_hash,
       name,
       user_type,
+      provider,
+      provider_id,
+      status,
+      email_verified,
       agree_terms,
       agree_privacy,
       agree_marketing,
     } = userData;
     const query = `
-      INSERT INTO users (email, password_hash, name, user_type, agree_terms, agree_privacy, agree_marketing, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
-      RETURNING id, email, name, user_type, created_at
+      INSERT INTO users (email, password_hash, name, user_type, provider, provider_id, status, email_verified, agree_terms, agree_privacy, agree_marketing)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      ON CONFLICT (email) DO NOTHING
+      RETURNING *
     `;
+    // 소셜 로그인 시 user_type이 없으므로 기본값 'artist'로 설정
     const values = [
       email,
       password_hash,
       name,
-      user_type,
+      user_type || "artist",
+      provider || "email",
+      provider_id,
+      status || "pending",
+      email_verified || false,
       agree_terms,
       agree_privacy,
       agree_marketing || false,
     ];
     const { rows } = await db.query(query, values);
+    // ON CONFLICT로 인해 삽입이 안된 경우, 기존 유저를 다시 조회
+    if (rows.length === 0) {
+      return this.findByEmail(email) as Promise<User>;
+    }
+    return rows[0];
+  }
+
+  static async updateProvider(
+    userId: number,
+    provider: string,
+    providerId: string
+  ): Promise<User> {
+    const query = `
+        UPDATE users SET provider = $1, provider_id = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3
+        RETURNING *
+    `;
+    const { rows } = await db.query(query, [provider, providerId, userId]);
     return rows[0];
   }
 }
