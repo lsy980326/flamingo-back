@@ -25,7 +25,6 @@ createTestAccount().catch((err) =>
   logger.error("Failed to create Ethereal test account", err)
 );
 
-// ✨ 여기가 수정되어야 할 핵심 부분입니다.
 // 인증 이메일 발송 함수
 export async function sendVerificationEmail(to: string, token: string) {
   // transporter가 초기화될 때까지 잠시 대기 (서버 시작 직후 호출 대비)

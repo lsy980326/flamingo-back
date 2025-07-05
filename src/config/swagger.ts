@@ -6,7 +6,7 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Flamingo API (TypeScript)",
+      title: "Flamingo API",
       version: "1.0.0",
       description: "Flamingo API 문서",
     },
@@ -16,6 +16,16 @@ const options: swaggerJsdoc.Options = {
         description: "Development server",
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [{ bearerAuth: [] }],
   },
   apis: ["./src/api/**/*.route.ts"],
 };

@@ -32,7 +32,7 @@ export const setupPassport = () => {
 
           if (user) {
             // 1-1. 기존 사용자인데, 구글 연동이 안된 경우 (이메일로 가입 후 구글 연동)
-            if (user.provider !== "google") {
+            if (user.social_type !== "google") {
               user = await UserModel.updateProvider(
                 user.id,
                 "google",
@@ -44,8 +44,8 @@ export const setupPassport = () => {
             user = await UserModel.create({
               email,
               name,
-              provider: "google",
-              provider_id: googleId,
+              social_type: "google",
+              social_id: googleId,
               status: "active", // 소셜 로그인은 이메일이 검증된 것으로 간주
               email_verified: true,
               agree_terms: true, // 소셜 로그인 시 필수 약관은 동의한 것으로 처리

@@ -8,7 +8,14 @@ export type ErrorCode =
   | "REQUIRED_PRIVACY"
   | "VERIFICATION_TOKEN_NOT_FOUND"
   | "VERIFICATION_TOKEN_EXPIRED"
-  | "VERIFICATION_TOKEN_ALREADY_USED";
+  | "VERIFICATION_TOKEN_ALREADY_USED"
+  | "LOGIN_FAILED"
+  | "ACCOUNT_NOT_ACTIVE"
+  | "UNAUTHORIZED"
+  | "TOKEN_EXPIRED"
+  | "INVALID_TOKEN"
+  | "ACCOUNT_LOCKED"
+  | "INVALID_REFRESH_TOKEN";
 
 // 에러 코드와 메시지 매핑 객체
 export const ERROR_MESSAGES: { [key in ErrorCode]: string } = {
@@ -21,4 +28,17 @@ export const ERROR_MESSAGES: { [key in ErrorCode]: string } = {
   VERIFICATION_TOKEN_NOT_FOUND: "유효하지 않은 인증 토큰입니다.",
   VERIFICATION_TOKEN_EXPIRED: "인증 토큰이 만료되었습니다. 다시 시도해주세요.",
   VERIFICATION_TOKEN_ALREADY_USED: "이미 사용된 인증 토큰입니다.",
+  LOGIN_FAILED: "이메일 또는 비밀번호가 일치하지 않습니다.",
+  ACCOUNT_NOT_ACTIVE:
+    "계정이 활성화되지 않았습니다. 이메일 인증을 완료해주세요.",
+  UNAUTHORIZED: "인증이 필요합니다.",
+  TOKEN_EXPIRED: "토큰이 만료되었습니다. 다시 로그인해주세요.",
+  INVALID_TOKEN: "유효하지 않은 토큰입니다.",
+  ACCOUNT_LOCKED:
+    "계정이 5회 이상 로그인 실패하여 잠겼습니다. 30분 후에 다시 시도해주세요.",
+  INVALID_REFRESH_TOKEN: "유효하지 않은 리프레시 토큰입니다.",
 };
+
+// 계정 잠금 정책 상수
+export const MAX_LOGIN_ATTEMPTS = 5;
+export const LOCKOUT_DURATION_MINUTES = 30;

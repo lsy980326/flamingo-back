@@ -2,6 +2,8 @@ import { Router } from "express";
 import authController from "./auth.controller";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import { protect } from "../../middleware/auth.middleware";
+import { authLimiter } from "../../middleware/rateLimiter.middleware";
 
 const router = Router();
 
@@ -10,7 +12,7 @@ const router = Router();
  * @swagger
  * tags:
  *   name: Auth
- *   description: 인증 관련 API
+ *   description: 인증 관련 API 구글 로그인 테스트(http://localhost:8000/api/v1/auth/google)
  */
 
 /**
@@ -49,7 +51,7 @@ const router = Router();
  *       500:
  *         description: 서버 오류
  */
-router.post("/register", authController.register);
+router.post("/register", authLimiter, authController.register);
 
 /**
  * @swagger
@@ -142,5 +144,67 @@ router.get(
     });
   }
 );
+
+/**
+ * @swagger
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: 일반 로그인 (이메일/비밀번호)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 로그인 성공, JWT 토큰 반환
+ *       401:
+ *         description: 로그인 실패
+ */
+router.post("/login", authLimiter, authController.login);
+
+/**
+ * @swagger
+ * /api/v1/auth/me:
+ *   get:
+ *     summary: 내 정보 조회 (인증 필요)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 현재 로그인된 사용자 정보 반환
+ *       401:
+ *         description: 인증 실패
+ */
+router.get("/me", protect, authController.getMe);
+
+/**
+ * @swagger
+ * /api/v1/auth/refresh:
+ *   post:
+ *     summary: 액세스 토큰 재발급
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: 새로운 액세스 토큰 발급 성공
+ */
+router.post("/refresh", authController.refreshToken);
 
 export default router;

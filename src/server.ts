@@ -7,12 +7,14 @@ import morgan from "morgan";
 import logger, { stream } from "./config/logger";
 import passport from "passport";
 import { setupPassport } from "./config/passport";
+import { globalLimiter } from "./middleware/rateLimiter.middleware";
 
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { setupSwagger } from "./config/swagger";
 import authRouter from "./api/auth/auth.route";
-import { AppError } from "./utils/AppError"; // AppError도 import 합니다.
+import { AppError } from "./utils/AppError";
+import { ERROR_MESSAGES } from "./constants/error.constants";
 
 const app: Express = express();
 const PORT = process.env.PORT || 8000;
@@ -29,6 +31,9 @@ setupPassport();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// 전역 레이트 리미터 미들웨어
+app.use(globalLimiter);
 
 // API 라우터
 app.use("/api/v1/auth", authRouter);

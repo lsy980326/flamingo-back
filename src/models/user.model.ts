@@ -89,6 +89,50 @@ export class UserModel {
     const { rows } = await db.query(query, [provider, providerId, userId]);
     return rows[0];
   }
+
+  static async findById(id: number): Promise<User | undefined> {
+    const query = "SELECT * FROM users WHERE id = $1";
+    const { rows } = await db.query(query, [id]);
+    return rows[0];
+  }
+
+  static async updateLastLogin(userId: number): Promise<void> {
+    const query =
+      "UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1";
+    await db.query(query, [userId]);
+  }
+
+  static async incrementFailedAttempts(userId: number): Promise<User> {
+    const query = `
+        UPDATE users
+        SET failed_attempts = failed_attempts + 1
+        WHERE id = $1
+        RETURNING *;
+    `;
+    const { rows } = await db.query(query, [userId]);
+    return rows[0];
+  }
+
+  static async lockAccount(
+    userId: number,
+    durationMinutes: number
+  ): Promise<void> {
+    const query = `
+        UPDATE users
+        SET locked_until = NOW() + INTERVAL '${durationMinutes} minutes'
+        WHERE id = $1;
+    `;
+    await db.query(query, [userId]);
+  }
+
+  static async resetLoginAttempts(userId: number): Promise<void> {
+    const query = `
+        UPDATE users
+        SET failed_attempts = 0, locked_until = NULL
+        WHERE id = $1;
+    `;
+    await db.query(query, [userId]);
+  }
 }
 
 export interface EmailVerification {

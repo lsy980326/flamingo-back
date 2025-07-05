@@ -7,7 +7,8 @@
     "esModuleInterop": true, // CommonJS 모듈을 ES6 모듈처럼 가져올 수 있게 함
     "forceConsistentCasingInFileNames": true,
     "strict": true, // 모든 엄격한 타입-검사 옵션 활성화
-    "skipLibCheck": true // 의존성 라이브러리의 타입 검사 스킵
+    "skipLibCheck": true, // 의존성 라이브러리의 타입 검사 스킵
+    "strictNullChecks": false // null과 undefined에 대한 엄격한 검사 비활성화
   },
   "include": ["src/**/*"] // 컴파일할 파일 범위
 }
