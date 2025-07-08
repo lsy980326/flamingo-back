@@ -12,9 +12,11 @@ import { globalLimiter } from "./middleware/rateLimiter.middleware";
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { setupSwagger } from "./config/swagger";
-import authRouter from "./api/auth/auth.route";
 import { AppError } from "./utils/AppError";
 import { ERROR_MESSAGES } from "./constants/error.constants";
+
+import authRouter from "./api/auth/auth.route";
+import projectRouter from "./api/projects/project.route";
 
 const app: Express = express();
 const PORT = process.env.PORT || 8000;
@@ -37,6 +39,7 @@ app.use(globalLimiter);
 
 // API 라우터
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/projects", projectRouter);
 
 // Swagger UI
 setupSwagger(app);

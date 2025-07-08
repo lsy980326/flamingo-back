@@ -18,7 +18,10 @@ export type ErrorCode =
   | "INVALID_REFRESH_TOKEN"
   | "PROFILE_NOT_FOUND"
   | "REQUIRED_TERMS"
-  | "REQUIRED_PRIVACY";
+  | "REQUIRED_PRIVACY"
+  | "FORBIDDEN"
+  | "PROJECT_ID_REQUIRED"
+  | "PROJECT_NOT_FOUND";
 
 export const ERROR_MESSAGES: { [key in ErrorCode]: string } = {
   EMAIL_ALREADY_EXISTS: "이미 사용 중인 이메일입니다.",
@@ -39,6 +42,9 @@ export const ERROR_MESSAGES: { [key in ErrorCode]: string } = {
   PROFILE_NOT_FOUND: "프로필을 찾을 수 없습니다.",
   REQUIRED_TERMS: "이용약관 동의가 필요합니다.",
   REQUIRED_PRIVACY: "개인정보 처리방침 동의가 필요합니다.",
+  FORBIDDEN: "이 작업에 대한 권한이 없습니다.",
+  PROJECT_ID_REQUIRED: "프로젝트 ID가 필요합니다.",
+  PROJECT_NOT_FOUND: "프로젝트를 찾을 수 없습니다.",
 };
 
 export const MAX_LOGIN_ATTEMPTS = 5;
