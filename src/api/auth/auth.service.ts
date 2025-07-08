@@ -110,6 +110,11 @@ class AuthService {
     token: { access_token: string; refreshToken: string };
     user: { id: number; name: string; user_type: string };
   }> {
+    // public async login(
+    //   email: string,
+    //   password: string,
+    //   req: Request
+    // ): Promise<{ accessToken: string; refreshToken: string; user: User }> {
     const user = await UserModel.findByEmail(email);
 
     // 1. (가장 먼저) 계정 잠금 상태 확인
@@ -152,18 +157,18 @@ class AuthService {
       await UserModel.resetLoginAttempts(user.id);
     }
 
-    const deviceInfo = req.headers["user-agent"] || "Unknown Device";
-    const ipAddress = req.ip;
-    const { accessToken, refreshToken } = jwtService.generateTokens(
+    const { accessToken, refreshToken } = await jwtService.generateTokens(
       user,
-      deviceInfo,
-      ipAddress
+      req.headers["user-agent"] || "Unknown",
+      req.ip
     );
 
-    // 마지막 로그인 시간 업데이트
     UserModel.updateLastLogin(user.id).catch((err) =>
       logger.error("Failed to update last login", err)
     );
+
+    // const { password_hash, ...userResponse } = user;
+    // return { accessToken, refreshToken, user: userResponse };
 
     return {
       user: {

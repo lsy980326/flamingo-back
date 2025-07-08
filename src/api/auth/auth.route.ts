@@ -4,6 +4,7 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 import { protect } from "../../middleware/auth.middleware";
 import { authLimiter } from "../../middleware/rateLimiter.middleware";
+import { User } from "../../models/user.model";
 
 const router = Router();
 
@@ -125,23 +126,15 @@ router.get(
     failureRedirect: "/login/failed",
     session: false,
   }),
-  (req, res) => {
-    // Passport가 성공적으로 인증하고 user 객체를 req.user에 담아줌
+  (req: any, res: any) => {
+    // req, res 타입을 any로 변경
     const user = req.user as User;
-
-    // JWT 생성
     const payload = { id: user.id, email: user.email };
-    const token = jwt.sign(payload, process.env.JWT_SECRET!, {
+    const secret: any = process.env.JWT_SECRET || "default_secret"; // 타입을 any로 변경
+    const token = jwt.sign(payload, secret, {
       expiresIn: process.env.JWT_EXPIRES_IN || "1d",
     });
-
-    // TODO: 성공 시 프론트엔드의 특정 페이지로 리다이렉트하면서 토큰 전달
-    // 예: res.redirect(`http://localhost:3000/auth/success?token=${token}`);
-    res.status(200).json({
-      message: "Google login successful",
-      token,
-      user,
-    });
+    res.status(200).json({ token, user });
   }
 );
 
