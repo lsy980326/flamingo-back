@@ -21,7 +21,13 @@ export type ErrorCode =
   | "REQUIRED_PRIVACY"
   | "FORBIDDEN"
   | "PROJECT_ID_REQUIRED"
-  | "PROJECT_NOT_FOUND";
+  | "PROJECT_NOT_FOUND"
+  | "USER_TO_ADD_NOT_FOUND"
+  | "USER_ALREADY_COLLABORATOR"
+  | "CANNOT_CHANGE_OWN_ROLE"
+  | "CANNOT_CHANGE_OWNER_ROLE"
+  | "CANNOT_REMOVE_SELF"
+  | "COLLABORATOR_NOT_FOUND";
 
 export const ERROR_MESSAGES: { [key in ErrorCode]: string } = {
   EMAIL_ALREADY_EXISTS: "이미 사용 중인 이메일입니다.",
@@ -45,6 +51,12 @@ export const ERROR_MESSAGES: { [key in ErrorCode]: string } = {
   FORBIDDEN: "이 작업에 대한 권한이 없습니다.",
   PROJECT_ID_REQUIRED: "프로젝트 ID가 필요합니다.",
   PROJECT_NOT_FOUND: "프로젝트를 찾을 수 없습니다.",
+  USER_TO_ADD_NOT_FOUND: "초대하려는 사용자를 찾을 수 없습니다.",
+  USER_ALREADY_COLLABORATOR: "이미 프로젝트에 참여 중인 사용자입니다.",
+  CANNOT_CHANGE_OWN_ROLE: "자기 자신의 역할은 변경할 수 없습니다.",
+  CANNOT_CHANGE_OWNER_ROLE: "프로젝트 소유자의 역할은 변경할 수 없습니다.",
+  CANNOT_REMOVE_SELF: "자기 자신을 프로젝트에서 내보낼 수 없습니다.",
+  COLLABORATOR_NOT_FOUND: "해당 협업자를 프로젝트에서 찾을 수 없습니다.",
 };
 
 export const MAX_LOGIN_ATTEMPTS = 5;

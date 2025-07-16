@@ -21,6 +21,10 @@ import projectRouter from "./api/projects/project.route";
 const app: Express = express();
 const PORT = process.env.PORT || 8000;
 
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).send("OK");
+});
+
 //모르간 로깅
 const morganFormat = process.env.NODE_ENV !== "production" ? "dev" : "combined";
 app.use(morgan(morganFormat, { stream }));

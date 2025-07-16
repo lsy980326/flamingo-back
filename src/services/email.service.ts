@@ -1,8 +1,41 @@
 import nodemailer from "nodemailer";
 import logger from "../config/logger";
 
-// Ethereal 테스트 계정 생성 로직 (이 부분은 그대로)
 let transporter: nodemailer.Transporter;
+
+async function initializeTransporter() {
+  // 개발 환경에서는 Ethereal 테스트 계정을 사용
+  if (process.env.NODE_ENV === "development") {
+    const testAccount = await nodemailer.createTestAccount();
+    logger.info(`📧 Ethereal test account ready: User: ${testAccount.user}`);
+    return nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: {
+        user: testAccount.user,
+        pass: testAccount.pass,
+      },
+    });
+  } else {
+    // 운영 환경(또는 development가 아닌 모든 환경)에서는 .env의 실제 SMTP 정보를 사용
+    logger.info(`📧 Using production SMTP server: ${process.env.SMTP_HOST}`);
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || "587", 10),
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  }
+}
+
+const transporterPromise = initializeTransporter().catch((err) => {
+  logger.error("Failed to initialize email transporter", err);
+  return null;
+});
 
 async function createTestAccount() {
   const testAccount = await nodemailer.createTestAccount();
@@ -27,25 +60,17 @@ createTestAccount().catch((err) =>
 
 // 인증 이메일 발송 함수
 export async function sendVerificationEmail(to: string, token: string) {
-  // transporter가 초기화될 때까지 잠시 대기 (서버 시작 직후 호출 대비)
+  const transporter = await transporterPromise;
   if (!transporter) {
-    logger.warn("Transporter not initialized, waiting...");
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // 2초 대기
-    if (!transporter) {
-      logger.error(
-        "Transporter still not initialized after wait. Email not sent."
-      );
-      return;
-    }
+    logger.error("Transporter is not available. Email not sent.");
+    return;
   }
 
   // 프론트엔드 인증 페이지 URL
-  const verificationUrl = `${
-    process.env.CLIENT_URL || "http://localhost:3000"
-  }/auth/verify?token=${token}`;
+  const verificationUrl = `${process.env.CLIENT_URL}/auth/verify?token=${token}`;
 
   const mailOptions = {
-    from: '"Flamingo" <no-reply@flamingo.com>',
+    from: process.env.EMAIL_FROM,
     to,
     subject: "🦩 Flamingo 회원가입 인증 메일입니다.",
     html: `
@@ -62,10 +87,13 @@ export async function sendVerificationEmail(to: string, token: string) {
   try {
     const info = await transporter.sendMail(mailOptions);
 
-    // Ethereal에서 보낸 메일을 확인할 수 있는 URL을 로그에 출력
-    logger.info(`Email sent: ${info.messageId}`);
-    logger.info(`▶ Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    // 개발 환경일 때만 Ethereal 미리보기 URL을 출력
+    if (process.env.NODE_ENV === "development") {
+      logger.info(`▶ Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+    } else {
+      logger.info(`Email sent successfully to ${to}: ${info.messageId}`);
+    }
   } catch (error) {
-    logger.error("Failed to send email", error);
+    logger.error(`Failed to send email to ${to}`, error);
   }
 }

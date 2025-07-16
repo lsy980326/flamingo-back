@@ -32,4 +32,44 @@ export class ProjectCollaboratorModel {
     const { rows } = await db.query(query, [projectId, userId]);
     return rows[0];
   }
+
+  //모든 협업자 목록 조회
+  static async findAllByProjectId(projectId: string): Promise<any[]> {
+    const query = `
+      SELECT u.id, u.name, u.email, pc.role
+      FROM project_collaborators pc
+      JOIN users u ON pc.user_id = u.id
+      WHERE pc.project_id = $1
+      ORDER BY
+          CASE pc.role
+              WHEN 'owner' THEN 1
+              WHEN 'editor' THEN 2
+              WHEN 'viewer' THEN 3
+          END,
+          u.name;
+    `;
+    const { rows } = await db.query(query, [projectId]);
+    return rows;
+  }
+
+  static async updateRole(
+    projectId: string,
+    userId: number,
+    newRole: ProjectRole
+  ): Promise<void> {
+    const query = `
+      UPDATE project_collaborators
+      SET role = $3
+      WHERE project_id = $1 AND user_id = $2;
+    `;
+    await db.query(query, [projectId, userId, newRole]);
+  }
+
+  static async remove(projectId: string, userId: number): Promise<void> {
+    const query = `
+      DELETE FROM project_collaborators
+      WHERE project_id = $1 AND user_id = $2;
+    `;
+    await db.query(query, [projectId, userId]);
+  }
 }
