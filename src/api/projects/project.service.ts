@@ -1,4 +1,5 @@
 import db from "../../config/db";
+import { sendMessage } from "../../services/kafka.producer";
 import { Project, ProjectModel } from "../../models/project.model";
 import { ProjectCollaboratorModel } from "../../models/projectCollaborator.model";
 import { UserModel } from "../../models/user.model";
@@ -25,6 +26,13 @@ class ProjectService {
       );
 
       await client.query("COMMIT");
+
+      //kafka 메시지 전송
+      sendMessage("PROJECTS_V1", {
+        event: "PROJECT_CREATED",
+        data: newProject,
+      });
+
       return newProject;
     } catch (error) {
       await client.query("ROLLBACK");
@@ -56,6 +64,11 @@ class ProjectService {
     if (!deletedProject) {
       throw new AppError("PROJECT_NOT_FOUND", 404);
     }
+
+    sendMessage("PROJECTS_V1", {
+      event: "PROJECT_DELETED",
+      data: { projectId: deletedProject.id },
+    });
   }
 
   public async addCollaborator(
@@ -80,6 +93,15 @@ class ProjectService {
 
     // 3. 협업자 추가
     await ProjectCollaboratorModel.add(projectId, userToAdd.id, role);
+
+    sendMessage("COLLABORATORS_V1", {
+      event: "COLLABORATOR_ADDED",
+      data: {
+        projectId,
+        userId: Number(userToAdd.id),
+        role,
+      },
+    });
   }
 
   public async getCollaborators(projectId: string): Promise<any[]> {
@@ -112,7 +134,15 @@ class ProjectService {
     }
 
     await ProjectCollaboratorModel.updateRole(projectId, targetUserId, newRole);
-    // TODO: 역할 변경 알림/이메일 발송 로직
+
+    sendMessage("COLLABORATORS_V1", {
+      event: "COLLABORATOR_ROLE_UPDATED",
+      data: {
+        projectId,
+        userId: Number(targetUserId),
+        newRole,
+      },
+    });
   }
 
   public async removeCollaborator(
@@ -135,6 +165,13 @@ class ProjectService {
     }
 
     await ProjectCollaboratorModel.remove(projectId, targetUserId);
+    sendMessage("COLLABORATORS_V1", {
+      event: "COLLABORATOR_REMOVED",
+      data: {
+        projectId,
+        userId: Number(targetUserId),
+      },
+    });
   }
 }
 

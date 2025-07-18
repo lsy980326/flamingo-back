@@ -8,6 +8,7 @@ import logger, { stream } from "./config/logger";
 import passport from "passport";
 import { setupPassport } from "./config/passport";
 import { globalLimiter } from "./middleware/rateLimiter.middleware";
+import { connectProducer } from "./services/kafka.producer";
 
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
@@ -40,6 +41,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // 전역 레이트 리미터 미들웨어
 app.use(globalLimiter);
+
+//kafka 프로듀서 연결
+connectProducer();
 
 // API 라우터
 app.use("/api/v1/auth", authRouter);
