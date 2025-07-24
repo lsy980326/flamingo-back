@@ -200,4 +200,30 @@ router.get("/me", protect, authController.getMe);
  */
 router.post("/refresh", authController.refreshToken);
 
+/**
+ * @swagger
+ * /api/v1/auth/resend-verification:
+ *   post:
+ *     summary: 인증 이메일 재전송
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: 재전송 성공
+ */
+router.post(
+  "/resend-verification",
+  authLimiter,
+  authController.resendVerificationEmail
+);
+
 export default router;

@@ -182,9 +182,34 @@ class AuthService {
       },
     };
   }
+
   public async refreshToken(token: string): Promise<{ accessToken: string }> {
     const newAccessToken = await jwtService.refreshAccessToken(token); // JwtService에 해당 메소드 구현 필요
     return { accessToken: newAccessToken };
+  }
+
+  public async resendVerificationEmail(email: string): Promise<void> {
+    const user = await UserModel.findByEmail(email);
+
+    // 1. 사용자가 존재하지 않더라도, 이메일 존재 여부를 알려주지 않기 위해 에러를 반환하지 않습니다. (사용자 열거 공격 방지)
+    if (!user) {
+      logger.info(
+        `Verification resend requested for non-existent user: ${email}`
+      );
+      // 성공한 것처럼 응답하여 어떤 이메일이 가입되어 있는지 추측할 수 없게 합니다.
+      return;
+    }
+
+    // 2. 이미 인증된 사용자인 경우 에러를 발생시킵니다.
+    if (user.email_verified) {
+      throw new AppError("VERIFICATION_TOKEN_ALREADY_USED", 400);
+    }
+
+    // 3. 새로운 인증 토큰을 생성하고 이메일을 발송합니다.
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    // 기존 토큰이 있다면 덮어쓰거나, 없다면 새로 만듭니다. (모델의 create 로직에 따라 다름)
+    await EmailVerificationModel.create(user.id, verificationToken);
+    await sendVerificationEmail(user.email, verificationToken);
   }
 }
 

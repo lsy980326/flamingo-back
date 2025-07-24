@@ -123,6 +123,25 @@ class AuthController {
       data: userData,
     });
   }
+
+  public async resendVerificationEmail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    const { email } = req.body;
+    // 이메일 유효성 검사 추가
+    if (!email || !z.string().email().safeParse(email).success) {
+      throw new AppError("INVALID_EMAIL_FORMAT", 400);
+    }
+
+    await authService.resendVerificationEmail(email);
+    res.status(200).json({
+      success: true,
+      message:
+        "인증 이메일이 재전송되었습니다. 5분 안에 메일함을 확인해주세요.",
+    });
+  }
 }
 
 export default new AuthController();
