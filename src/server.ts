@@ -26,7 +26,7 @@ import cors from "cors";
 import morgan from "morgan";
 import passport from "passport";
 import { ZodError } from "zod";
-import { connectProducer } from "./services/kafka.producer";
+import { initializeKafkaProducer } from "./services/kafka.producer";
 
 import { setupPassport } from "./config/passport";
 import { setupSwagger } from "./config/swagger";
@@ -49,7 +49,7 @@ async function startServer() {
 
   // Kafka 프로듀서 연결
   // 서버가 요청을 처리하기 전에 Kafka 연결이 완료되도록 여기에 추가합니다.
-  await connectProducer();
+  initializeKafkaProducer();
   console.log("--- Kafka Producer connected ---");
 
   const app: Express = express();
@@ -122,6 +122,7 @@ async function startServer() {
     console.log(
       "--- Server setup complete and ready to accept connections ---"
     );
+    console.log("http://localhost:8000/api-docs/");
   });
 }
 

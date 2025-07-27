@@ -14,7 +14,9 @@
   "packageManager": "pnpm@10.12.4",
   "dependencies": {
     "@aws-sdk/client-sesv2": "^3.846.0",
+    "@aws-sdk/client-sts": "^3.848.0",
     "@aws-sdk/credential-providers": "^3.848.0",
+    "@jm18457/kafkajs-msk-iam-authentication-mechanism": "^3.1.2",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
