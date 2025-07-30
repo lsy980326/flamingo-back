@@ -1,20 +1,35 @@
 import { Kafka, Producer, Admin, Partitioners, SASLOptions } from "kafkajs";
 
-const sasl: SASLOptions = {
-  mechanism: "scram-sha-512",
-  username: process.env.KAFKA_USERNAME!,
-  password: process.env.KAFKA_PASSWORD!,
-};
+const isProduction = process.env.NODE_ENV === "production";
+console.log(
+  `[Kafka Producer] Running in ${
+    isProduction ? "PRODUCTION" : "DEVELOPMENT"
+  } mode.`
+);
 
-const kafka = new Kafka({
-  clientId: "flamingo-api-server",
-  brokers: process.env.KAFKA_BROKERS!.split(",").map((b) => b.trim()),
-  ssl: true,
-  // sasl: sasl,
-  // 연결 타임아웃을 늘려서 안정성 확보
-  connectionTimeout: 5000,
-  requestTimeout: 30000,
-});
+let kafka: Kafka;
+
+if (isProduction) {
+  const sasl: SASLOptions = {
+    mechanism: "scram-sha-512",
+    username: process.env.KAFKA_USERNAME!,
+    password: process.env.KAFKA_PASSWORD!,
+  };
+
+  const kafka = new Kafka({
+    clientId: "flamingo-api-server",
+    brokers: process.env.KAFKA_BROKERS!.split(",").map((b) => b.trim()),
+    ssl: true,
+    connectionTimeout: 5000,
+    requestTimeout: 30000,
+  });
+} else {
+  // --- 로컬 개발 환경 설정 ---
+  kafka = new Kafka({
+    clientId: "flamingo-api-server-local",
+    brokers: ["localhost:29092"], // 하드코딩된 로컬 주소 사용
+  });
+}
 
 const admin: Admin = kafka.admin({
   retry: {
