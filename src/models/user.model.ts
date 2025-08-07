@@ -151,4 +151,26 @@ export class EmailVerificationModel {
     const { rows } = await db.query(query, [token]);
     return rows[0];
   }
+
+  static async findUserByToken(
+    token: string
+  ): Promise<{ id: number; email: string } | undefined> {
+    const query = `
+        SELECT u.id, u.email
+        FROM email_verifications ev
+        JOIN users u ON ev.user_id = u.id
+        WHERE ev.token = $1;
+    `;
+    const { rows } = await db.query(query, [token]);
+    return rows[0];
+  }
+
+  static async invalidateOldTokens(userId: number): Promise<void> {
+    const query = `
+        UPDATE email_verifications
+        SET verified_at = NOW()
+        WHERE user_id = $1 AND verified_at IS NULL;
+    `;
+    await db.query(query, [userId]);
+  }
 }

@@ -204,7 +204,7 @@ router.post("/refresh", authController.refreshToken);
  * @swagger
  * /api/v1/auth/resend-verification:
  *   post:
- *     summary: 인증 이메일 재전송
+ *     summary: 이메일 인증 토큰 재발송
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -213,17 +213,15 @@ router.post("/refresh", authController.refreshToken);
  *           schema:
  *             type: object
  *             properties:
- *               email:
+ *               token:
  *                 type: string
- *                 format: email
+ *                 description: 만료되었거나 실패한 기존 인증 토큰
  *     responses:
  *       200:
- *         description: 재전송 성공
+ *         description: 재발송 성공
+ *       404:
+ *         description: 유효하지 않은 토큰
  */
-router.post(
-  "/resend-verification",
-  authLimiter,
-  authController.resendVerificationEmail
-);
+router.post("/resend-verification", authController.resendVerificationEmail);
 
 export default router;

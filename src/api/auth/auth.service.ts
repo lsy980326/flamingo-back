@@ -188,28 +188,29 @@ class AuthService {
     return { accessToken: newAccessToken };
   }
 
-  public async resendVerificationEmail(email: string): Promise<void> {
-    const user = await UserModel.findByEmail(email);
-
-    // 1. 사용자가 존재하지 않더라도, 이메일 존재 여부를 알려주지 않기 위해 에러를 반환하지 않습니다. (사용자 열거 공격 방지)
+  public async resendVerificationEmail(oldToken: string): Promise<void> {
+    // 1. 만료된 토큰으로 사용자 정보(ID, 이메일) 조회
+    const user = await EmailVerificationModel.findUserByToken(oldToken);
     if (!user) {
-      logger.info(
-        `Verification resend requested for non-existent user: ${email}`
-      );
-      // 성공한 것처럼 응답하여 어떤 이메일이 가입되어 있는지 추측할 수 없게 합니다.
+      // 존재하지 않는 토큰이면 아무 작업도 하지 않거나, 에러를 던질 수 있음
+      // 여기서는 조용히 무시하여, 존재하지 않는 토큰으로 시스템을 추측하는 것을 방지
+      logger.warn(`Resend request for non-existent token: ${oldToken}`);
       return;
     }
 
-    // 2. 이미 인증된 사용자인 경우 에러를 발생시킵니다.
-    if (user.email_verified) {
-      throw new AppError("VERIFICATION_TOKEN_ALREADY_USED", 400);
-    }
+    // (선택적) 보안 강화: 이 사용자의 다른 모든 유효한 토큰들을 무효화
+    await EmailVerificationModel.invalidateOldTokens(user.id);
 
-    // 3. 새로운 인증 토큰을 생성하고 이메일을 발송합니다.
-    const verificationToken = crypto.randomBytes(32).toString("hex");
-    // 기존 토큰이 있다면 덮어쓰거나, 없다면 새로 만듭니다. (모델의 create 로직에 따라 다름)
-    await EmailVerificationModel.create(user.id, verificationToken);
-    await sendVerificationEmail(user.email, verificationToken);
+    // 2. 새로운 토큰 생성
+    const newToken = crypto.randomBytes(32).toString("hex");
+
+    // 3. email_verifications 테이블에 새로운 토큰 저장
+    await EmailVerificationModel.create(user.id, newToken);
+
+    // 4. 사용자 이메일로 새로운 인증 링크 발송
+    await sendVerificationEmail(user.email, newToken);
+
+    logger.info(`Resent verification email to ${user.email}`);
   }
 }
 

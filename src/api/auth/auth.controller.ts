@@ -129,17 +129,19 @@ class AuthController {
     res: Response,
     next: NextFunction
   ): Promise<void> {
-    const { email } = req.body;
-    // 이메일 유효성 검사 추가
-    if (!email || !z.string().email().safeParse(email).success) {
-      throw new AppError("INVALID_EMAIL_FORMAT", 400);
+    const { token } = req.body;
+
+    if (!token) {
+      // Zod나 AppError로 처리
+      throw new AppError("INVALID_TOKEN", 400);
     }
 
-    await authService.resendVerificationEmail(email);
+    await authService.resendVerificationEmail(token);
+
+    // 어떤 경우든(토큰이 유효하든 아니든) 일관된 성공 메시지를 보내는 것이 보안에 유리
     res.status(200).json({
       success: true,
-      message:
-        "인증 이메일이 재전송되었습니다. 5분 안에 메일함을 확인해주세요.",
+      message: "인증 메일 재발송 요청이 처리되었습니다. 메일함을 확인해주세요.",
     });
   }
 }
