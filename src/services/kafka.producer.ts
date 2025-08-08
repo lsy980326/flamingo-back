@@ -10,18 +10,16 @@ console.log(
 let kafka: Kafka;
 
 if (isProduction) {
-  const sasl: SASLOptions = {
-    mechanism: "scram-sha-512",
-    username: process.env.KAFKA_USERNAME!,
-    password: process.env.KAFKA_PASSWORD!,
-  };
+  // const sasl: SASLOptions = {
+  //   mechanism: "scram-sha-512",
+  //   username: process.env.KAFKA_USERNAME!,
+  //   password: process.env.KAFKA_PASSWORD!,
+  // };
 
-  const kafka = new Kafka({
+  kafka = new Kafka({
     clientId: "flamingo-api-server",
     brokers: process.env.KAFKA_BROKERS!.split(",").map((b) => b.trim()),
     ssl: true,
-    connectionTimeout: 5000,
-    requestTimeout: 30000,
   });
 } else {
   // --- 로컬 개발 환경 설정 ---
